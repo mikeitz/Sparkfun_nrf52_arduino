@@ -21,6 +21,11 @@ version=0.2.3
 # Compile variables
 # -----------------
 
+nrf.sdk.path={build.core.path}/SDK
+gzll.include=-I{nrf.sdk.path}/components/drivers_nrf/gzll/include
+gzll.objs.path={nrf.sdk.path}/components/drivers_nrf/gzll/objs
+gzll.objs={gzll.objs.path}/app_util_platform.c.o {gzll.objs.path}/nrf_assert.c.o {gzll.objs.path}/nrf_assert_internal.c.o {gzll.objs.path}/nrf_channel_manager.c.o {gzll.objs.path}/nrf_fifo.c.o {gzll.objs.path}/nrf_flywheel.c.o {gzll.objs.path}/nrf_gzll.c.o {gzll.objs.path}/nrf_impala.c.o {gzll.objs.path}/nrf_link_core.c.o {gzll.objs.path}/nrf_notification_manager.c.o {gzll.objs.path}/nrf_packet_manager.c.o {gzll.objs.path}/nrf_state_machine.c.o
+
 compiler.warning_flags=-w
 compiler.warning_flags.none=-w
 compiler.warning_flags.default=
@@ -52,9 +57,7 @@ compiler.define=-DARDUINO=
 build.extra_flags=
 build.lfclk_flags=
 
-nrf.sdk.path={build.core.path}/SDK
-
-compiler.nrf.flags=-DNRF5 "-I{nrf.sdk.path}/components/toolchain/" "-I{nrf.sdk.path}/components/toolchain/CMSIS/Include" "-I{nrf.sdk.path}/components/toolchain/gcc/" "-I{nrf.sdk.path}/components/device/" "-I{nrf.sdk.path}/components/drivers_nrf/delay/" "-I{nrf.sdk.path}/components/softdevice/{softdevice}/headers/"
+compiler.nrf.flags=-DNRF5 "-I{nrf.sdk.path}/components/toolchain/" "-I{nrf.sdk.path}/components/toolchain/CMSIS/Include" "-I{nrf.sdk.path}/components/toolchain/gcc/" "-I{nrf.sdk.path}/components/device/" "-I{nrf.sdk.path}/components/drivers_nrf/delay/" "-I{nrf.sdk.path}/components/softdevice/{softdevice}/headers/" "{gzll.include}"
 
 # These can be overridden in platform.local.txt
 compiler.c.extra_flags=
@@ -82,7 +85,7 @@ recipe.S.o.pattern="{compiler.path}{compiler.S.cmd}" {compiler.S.flags} -DF_CPU=
 recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compiler.ar.extra_flags} "{archive_file_path}" "{object_file}"
 
 ## Combine gc-sections, archives, and objects
-recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}"  "-L{build.path}" {compiler.c.elf.flags} {compiler.c.elf.extra_flags} "-L{nrf.sdk.path}/components/toolchain/gcc/" "-L{nrf.sdk.path}/components/softdevice/{softdevice}/toolchain/armgcc/" "-T{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" --specs=nano.specs --specs=nosys.specs {compiler.ldflags} -o "{build.path}/{build.project_name}.elf" {object_files} -Wl,--start-group -lm "{build.path}/{archive_file}" -Wl,--end-group
+recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}"  "-L{build.path}" {compiler.c.elf.flags} {compiler.c.elf.extra_flags} "-L{nrf.sdk.path}/components/toolchain/gcc/" "-L{nrf.sdk.path}/components/softdevice/{softdevice}/toolchain/armgcc/" "-T{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" --specs=nano.specs --specs=nosys.specs {compiler.ldflags} -o "{build.path}/{build.project_name}.elf" {object_files} {gzll.objs} -Wl,--start-group -lm "{build.path}/{archive_file}" -Wl,--end-group
 
 ## Create output (bin file)
 recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2bin.cmd}" {compiler.elf2bin.flags} {compiler.elf2bin.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
